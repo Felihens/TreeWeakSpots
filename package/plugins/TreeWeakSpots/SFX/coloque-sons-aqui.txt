@@ -1,0 +1,5 @@
+Put .wav or .ogg files here to use as the crit sound. One is picked at random on each crit
+(SomDoCritico = Automatico or Arquivo). Without files, the game's "hit a staggered enemy" sound is used.
+
+Coloque aqui arquivos .wav ou .ogg para usar como som de crítico. O mod sorteia um a cada crítico
+(SomDoCritico em Automatico ou Arquivo). Sem arquivos, usa o som do jogo de acertar inimigo de postura quebrada.

@@ -1,0 +1,9 @@
+{
+  "name": "TreeWeakSpots",
+  "version_number": "0.5.0",
+  "website_url": "https://github.com/Felihens/TreeWeakSpots",
+  "description": "A glowing band wraps fallen logs when you aim with an axe. Chop on the band for a critical hit. Logs get an overhead sledge swing. Client-side, no server install needed.",
+  "dependencies": [
+    "denikson-BepInExPack_Valheim-5.4.2351"
+  ]
+}
