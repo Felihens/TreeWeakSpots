@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.9.1
+- New screenshots on the mod page. / Prints novas na página do mod.
+
 ## 0.9.0
 - First release. Options and log messages in English. / Primeira versão. Opções e mensagens do log em inglês.
 - Glowing band around fallen logs; chop on it for a critical hit. / Faixa de luz em volta dos troncos caídos; golpear nela dá crítico.
