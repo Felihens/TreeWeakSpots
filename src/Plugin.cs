@@ -15,7 +15,7 @@ namespace TreeWeakSpots
     {
         public const string GUID = "felih.TreeWeakSpots";
         public const string NAME = "Tree Weak Spots";
-        public const string VERSION = "0.5.0";
+        public const string VERSION = "0.9.0";
 
         public static ManualLogSource Log;
 

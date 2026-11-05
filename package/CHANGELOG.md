@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.5.0
+## 0.9.0
 - First release. / Primeira versão.
 - Glowing band around fallen logs; chop on it for a critical hit. / Faixa de luz em volta dos troncos caídos; golpear nela dá crítico.
 - Crit damage number in yellow and twice as big. / Número de dano do crítico amarelo e com o dobro do tamanho.
