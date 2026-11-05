@@ -62,6 +62,10 @@ Press **F1** in game (requires Configuration Manager) or edit `BepInEx/config/fe
 
 Drop `.wav` or `.ogg` files into `BepInEx/plugins/TreeWeakSpots/SFX`. With `CritSound` set to `Auto` or `File`, one of them is picked at random on each crit. Without files, the mod plays the game's own sound for hitting a staggered enemy.
 
+### Bugs & suggestions
+
+Found a bug or have an idea? Open an [issue](https://github.com/Felihens/TreeWeakSpots/issues) or start a [discussion](https://github.com/Felihens/TreeWeakSpots/discussions) on GitHub.
+
 ### Notes
 
 - Works well with **Ore Weak Spots** (same author), the same idea for mining.
@@ -122,6 +126,10 @@ Aperte **F1** no jogo (precisa do Configuration Manager) ou edite `BepInEx/confi
 ### Som próprio
 
 Coloque arquivos `.wav` ou `.ogg` na pasta `BepInEx/plugins/TreeWeakSpots/SFX`. Com `CritSound` em `Auto` ou `File`, o mod sorteia um deles a cada crítico. Sem arquivos, ele usa o som do jogo de acertar inimigo de postura quebrada.
+
+### Bugs e sugestões
+
+Achou um bug ou tem uma ideia? Abra uma [issue](https://github.com/Felihens/TreeWeakSpots/issues) ou comece uma [discussão](https://github.com/Felihens/TreeWeakSpots/discussions) no GitHub.
 
 ### Observações
 
