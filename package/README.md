@@ -2,13 +2,9 @@
 
 **[English](#english) · [Português](#português)**
 
-![Glowing band on a fallen log / Faixa de luz num tronco caído](https://raw.githubusercontent.com/Felihens/TreeWeakSpots/main/docs/screenshots/1-faixa.webp)
+![Glowing band on a fallen log](https://raw.githubusercontent.com/Felihens/TreeWeakSpots/main/docs/screenshots/1-faixa.png)
 
-![Band on a log / Faixa no tronco](https://raw.githubusercontent.com/Felihens/TreeWeakSpots/main/docs/screenshots/2-faixa.webp)
-
-![Band on a log / Faixa no tronco](https://raw.githubusercontent.com/Felihens/TreeWeakSpots/main/docs/screenshots/3-faixa.webp)
-
-![Critical hit: flash and big yellow number / Crítico: clarão e número amarelo grande](https://raw.githubusercontent.com/Felihens/TreeWeakSpots/main/docs/screenshots/4-critico.webp)
+![Chopping on the band](https://raw.githubusercontent.com/Felihens/TreeWeakSpots/main/docs/screenshots/2-faixa.png)
 
 ---
 
