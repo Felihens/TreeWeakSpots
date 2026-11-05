@@ -6,9 +6,9 @@ using UnityEngine;
 
 namespace TreeWeakSpots
 {
-    public enum SpotColorOption { Azul, Dourado, Verde }
-    public enum CritSoundOption { Automatico, Arquivo, Jogo, Mod, Nenhum }
-    public enum CritNumberColorOption { Amarelo, Vermelho, Normal }
+    public enum SpotColorOption { Blue, Gold, Green }
+    public enum CritSoundOption { Auto, File, Game, Mod, None }
+    public enum CritNumberColorOption { Yellow, Red, Normal }
 
     [BepInPlugin(GUID, NAME, VERSION)]
     public class Plugin : BaseUnityPlugin
@@ -53,11 +53,11 @@ namespace TreeWeakSpots
                 // ComboChopping marks the swing as a "tree hit" from this prefix: without it on logs, its
                 // damage bonus and combo handling stay on standing trees only.
                 _harmony.Unpatch(damage, HarmonyPatchType.All, ComboChoppingId);
-                Log.LogInfo("ComboChopping desligado nos troncos caídos (continua nas árvores em pé).");
+                Log.LogInfo("ComboChopping turned off on fallen logs (still active on standing trees).");
             }
             catch (System.Exception e)
             {
-                Log.LogWarning("Não consegui ajustar o ComboChopping: " + e.Message);
+                Log.LogWarning("Could not adjust ComboChopping: " + e.Message);
             }
         }
 
@@ -65,58 +65,58 @@ namespace TreeWeakSpots
         {
             Log = Logger;
 
-            Enabled = Config.Bind("1 - Geral", "Ativado", true, "Liga ou desliga o mod.");
-            CritMultiplier = Config.Bind("1 - Geral", "MultiplicadorCritico", 2f,
-                new ConfigDescription("Multiplicador de dano do machado ao acertar uma faixa.",
+            Enabled = Config.Bind("1 - General", "Enabled", true, "Turns the mod on or off.");
+            CritMultiplier = Config.Bind("1 - General", "CritMultiplier", 2f,
+                new ConfigDescription("Axe damage multiplier when you hit a band.",
                     new AcceptableValueRange<float>(1f, 10f)));
 
-            SpotCount = Config.Bind("2 - Pontos fracos", "Quantidade", 1,
-                new ConfigDescription("Quantas faixas brilhantes aparecem ao mesmo tempo no tronco caído.",
+            SpotCount = Config.Bind("2 - Weak spots", "Count", 1,
+                new ConfigDescription("How many glowing bands appear on the fallen log at the same time.",
                     new AcceptableValueRange<int>(1, 4)));
-            MinSpacing = Config.Bind("2 - Pontos fracos", "DistanciaEntrePontos", 1.2f,
-                new ConfigDescription("Distância mínima (metros) entre duas faixas.",
+            MinSpacing = Config.Bind("2 - Weak spots", "MinSpacing", 1.2f,
+                new ConfigDescription("Minimum distance (meters) between two bands.",
                     new AcceptableValueRange<float>(0.3f, 5f)));
-            HitTolerance = Config.Bind("2 - Pontos fracos", "ToleranciaDeAcerto", 0.35f,
-                new ConfigDescription("Distância máxima (metros), ao longo do tronco, entre o golpe e o centro da faixa para contar como crítico.",
+            HitTolerance = Config.Bind("2 - Weak spots", "HitTolerance", 0.35f,
+                new ConfigDescription("Maximum distance (meters) along the log between the hit and the band's center for a crit.",
                     new AcceptableValueRange<float>(0.1f, 2f)));
-            SpotLifetime = Config.Bind("2 - Pontos fracos", "DuracaoDoPonto", 5f,
-                new ConfigDescription("Segundos que cada faixa fica visível antes de mudar de lugar.",
+            SpotLifetime = Config.Bind("2 - Weak spots", "SpotLifetime", 5f,
+                new ConfigDescription("Seconds each band stays visible before it moves.",
                     new AcceptableValueRange<float>(1f, 30f)));
-            MaxDistance = Config.Bind("2 - Pontos fracos", "DistanciaMaxima", 8f,
-                new ConfigDescription("Distância máxima (metros) dos seus olhos em que uma faixa pode surgir.",
+            MaxDistance = Config.Bind("2 - Weak spots", "MaxDistance", 8f,
+                new ConfigDescription("Maximum distance (meters) from your eyes where a band can appear.",
                     new AcceptableValueRange<float>(2f, 20f)));
-            ActiveDuration = Config.Bind("2 - Pontos fracos", "TempoSemMirar", 3f,
-                new ConfigDescription("Segundos sem mirar nem golpear o tronco até as faixas sumirem.",
+            ActiveDuration = Config.Bind("2 - Weak spots", "IdleTimeout", 3f,
+                new ConfigDescription("Seconds without aiming at or hitting the log before the bands disappear.",
                     new AcceptableValueRange<float>(0.5f, 60f)));
 
-            SpotColor = Config.Bind("3 - Visual", "Cor", SpotColorOption.Dourado, "Cor das faixas.");
-            BandWidth = Config.Bind("3 - Visual", "LarguraDaFaixa", 0.3f,
-                new ConfigDescription("Largura da faixa brilhante, em metros.", new AcceptableValueRange<float>(0.1f, 1f)));
-            SoundVolume = Config.Bind("3 - Visual", "VolumeDoSom", 1f,
-                new ConfigDescription("Volume do som de crítico (0 desliga).", new AcceptableValueRange<float>(0f, 1f)));
-            CritSound = Config.Bind("3 - Visual", "SomDoCritico", CritSoundOption.Automatico,
-                "Automatico = arquivo da pasta SFX do mod se houver, senão o som do jogo. " +
-                "Arquivo = só arquivos .wav/.ogg da pasta BepInEx/plugins/TreeWeakSpots/SFX (sorteia um). " +
-                "Jogo = som do Valheim ao acertar inimigo de postura quebrada. Mod = o \"tim\" do mod. Nenhum = sem som.");
-            CritNumberColor = Config.Bind("3 - Visual", "CorDoNumeroCritico", CritNumberColorOption.Amarelo,
-                "Cor do número de dano de um golpe crítico. Normal = cor padrão do jogo.");
-            CritNumberScale = Config.Bind("3 - Visual", "TamanhoDoNumeroCritico", 2f,
-                new ConfigDescription("Tamanho do número de dano de um golpe crítico (2 = o dobro do normal, 1 = sem mudança).",
+            SpotColor = Config.Bind("3 - Visuals", "Color", SpotColorOption.Gold, "Band color.");
+            BandWidth = Config.Bind("3 - Visuals", "BandWidth", 0.3f,
+                new ConfigDescription("Width of the glowing band, in meters.", new AcceptableValueRange<float>(0.1f, 1f)));
+            SoundVolume = Config.Bind("3 - Visuals", "SoundVolume", 1f,
+                new ConfigDescription("Crit sound volume (0 = off).", new AcceptableValueRange<float>(0f, 1f)));
+            CritSound = Config.Bind("3 - Visuals", "CritSound", CritSoundOption.Auto,
+                "Auto = a file from the mod's SFX folder if there is one, otherwise the game sound. " +
+                "File = only .wav/.ogg files from BepInEx/plugins/TreeWeakSpots/SFX (one at random). " +
+                "Game = Valheim's sound for hitting a staggered enemy. Mod = the mod's own chime. None = no sound.");
+            CritNumberColor = Config.Bind("3 - Visuals", "CritNumberColor", CritNumberColorOption.Yellow,
+                "Color of a crit's damage number. Normal = the game's default color.");
+            CritNumberScale = Config.Bind("3 - Visuals", "CritNumberSize", 2f,
+                new ConfigDescription("Size of a crit's damage number (2 = double, 1 = unchanged).",
                     new AcceptableValueRange<float>(1f, 4f)));
 
-            SledgeSwing = Config.Bind("4 - Golpe", "GolpeDeMarreta", true,
-                "Depois do primeiro golpe normal num tronco caído, os próximos golpes nele viram a martelada de cima para baixo da marreta. " +
-                "Com escudo, tocha ou outro item na mão secundária o mod inteiro fica desligado. " +
-                "No resto do tempo (árvores em pé, combate) o machado continua normal.");
-            SwingSource = Config.Bind("4 - Golpe", "ArmaDaAnimacao", "SledgeStagbreaker",
-                "Nome do item de onde a animação é copiada (padrão: a marreta Stagbreaker).");
+            SledgeSwing = Config.Bind("4 - Swing", "SledgeSwing", true,
+                "Axe swings aimed at a fallen log use the sledgehammer's overhead strike. " +
+                "With a shield, torch or any other item in the off hand, the whole mod stays off. " +
+                "Everywhere else (standing trees, combat) the axe works as usual.");
+            SwingSource = Config.Bind("4 - Swing", "SwingSource", "SledgeStagbreaker",
+                "Name of the item the swing animation is copied from (default: the Stagbreaker sledge).");
 
-            BlockComboChopping = Config.Bind("4 - Golpe", "ComboChoppingSoEmArvoresEmPe", true,
-                "Se o mod ComboChopping estiver instalado, ele continua valendo nas árvores em pé, mas deixa de mexer " +
-                "no dano e no combo dos troncos caídos, onde vale só o Tree Weak Spots. Precisa reiniciar o jogo para mudar.");
+            BlockComboChopping = Config.Bind("4 - Swing", "ComboChoppingStandingTreesOnly", true,
+                "With the ComboChopping mod installed, it keeps working on standing trees but no longer changes " +
+                "the damage and combo on fallen logs, where only Tree Weak Spots applies. Restart the game after changing this.");
 
-            DebugLog = Config.Bind("9 - Debug", "LogDetalhado", false,
-                "Escreve no log do BepInEx cada golpe, o tamanho do tronco e a troca de animação.");
+            DebugLog = Config.Bind("9 - Debug", "DetailedLog", false,
+                "Writes each hit, the log's size and the swing animation swap to the BepInEx log.");
 
             GameObject go = new GameObject("TreeWeakSpots_Manager");
             Object.DontDestroyOnLoad(go);
@@ -125,7 +125,7 @@ namespace TreeWeakSpots
             _harmony = new Harmony(GUID);
             _harmony.PatchAll(typeof(Plugin).Assembly);
 
-            Log.LogInfo(NAME + " " + VERSION + " carregado.");
+            Log.LogInfo(NAME + " " + VERSION + " loaded.");
         }
 
         private void OnDestroy()
@@ -185,7 +185,7 @@ namespace TreeWeakSpots
                 _chain = a.m_attackChainLevels;
                 _random = a.m_attackRandomAnimations;
             }
-            Plugin.Log.LogInfo("Animação da marreta: " + (_anim ?? "não encontrada") + " (combo " + _chain + ")");
+            Plugin.Log.LogInfo("Sledge animation: " + (_anim ?? "not found") + " (combo " + _chain + ")");
         }
 
         private static void Prefix(Humanoid __instance, ref Saved __state)
@@ -211,7 +211,7 @@ namespace TreeWeakSpots
             if (Plugin.DebugLog.Value && Time.time - _lastLog > 0.8f)
             {
                 _lastLog = Time.time;
-                Plugin.Log.LogInfo("Golpe de marreta no tronco (" + _anim + ")");
+                Plugin.Log.LogInfo("Sledge swing on log (" + _anim + ")");
             }
         }
 
@@ -239,7 +239,7 @@ namespace TreeWeakSpots
             {
                 bool crit = WeakSpotManager.IsRecentCrit(pos);
                 if (Plugin.DebugLog.Value && (crit || WeakSpotManager.IsRecentHit(pos)))
-                    Plugin.Log.LogInfo("Número na tela: " + text + (crit ? " (crítico)" : ""));
+                    Plugin.Log.LogInfo("On-screen number: " + text + (crit ? " (crit)" : ""));
                 if (!crit) return;
                 if (_worldTexts == null) _worldTexts = AccessTools.Field(typeof(DamageText), "m_worldTexts");
                 System.Collections.IList list = _worldTexts.GetValue(__instance) as System.Collections.IList;
@@ -252,7 +252,7 @@ namespace TreeWeakSpots
                 System.Type t = tmp.GetType();
                 if (Plugin.CritNumberColor.Value != CritNumberColorOption.Normal)
                 {
-                    Color c = Plugin.CritNumberColor.Value == CritNumberColorOption.Vermelho
+                    Color c = Plugin.CritNumberColor.Value == CritNumberColorOption.Red
                         ? new Color(1f, 0.18f, 0.12f) : new Color(1f, 0.82f, 0.1f);
                     t.GetProperty("color").SetValue(tmp, c, null);
                 }

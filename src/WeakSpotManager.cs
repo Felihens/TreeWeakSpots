@@ -57,9 +57,9 @@ namespace TreeWeakSpots
             for (int i = 0; i < shaderNames.Length && _shader == null; i++)
             {
                 _shader = Shader.Find(shaderNames[i]);
-                if (_shader != null) Plugin.Log.LogInfo("Shader usado: " + shaderNames[i]);
+                if (_shader != null) Plugin.Log.LogInfo("Shader in use: " + shaderNames[i]);
             }
-            if (_shader == null) Plugin.Log.LogWarning("Nenhum shader transparente encontrado; só a luz da faixa será visível.");
+            if (_shader == null) Plugin.Log.LogWarning("No transparent shader found; only the band's light will be visible.");
             _critClip = MakeCritClip();
             StartCoroutine(LoadSoundFiles());
         }
@@ -74,49 +74,27 @@ namespace TreeWeakSpots
             if (player == null) return;
             Character attacker = hit.GetAttacker();
             string why = null;
-            if (attacker != player) why = "golpe não é do jogador local";
+            if (attacker != player) why = "hit is not from the local player";
             // Axe hits on trees and logs train WoodCutting, so that's the skill the hit carries.
             else if (hit.m_skill != Skills.SkillType.WoodCutting && hit.m_skill != Skills.SkillType.Axes)
-                why = "ferramenta não é machado (" + hit.m_skill + ")";
-            else if (!HoldingAxe(player)) why = "não está com machado na mão";
-            else if (!ModActive(player)) why = "mão secundária ocupada (" + OffHandItem(player).m_shared.m_name + ")";
+                why = "tool is not an axe (" + hit.m_skill + ")";
+            else if (!HoldingAxe(player)) why = "not holding an axe";
+            else if (!ModActive(player)) why = "off hand is busy (" + OffHandItem(player).m_shared.m_name + ")";
             if (Plugin.DebugLog.Value)
-                Plugin.Log.LogInfo("Golpe no tronco " + log.name + ": " + (why == null ? "aceito" : "ignorado, " + why));
+                Plugin.Log.LogInfo("Hit on log " + log.name + ": " + (why == null ? "accepted" : "ignored, " + why));
             if (why != null) return;
-            _swingLog = log;
-            _swingLogPos = log.transform.position;
-            _swingLogGoneAt = -1f;
             _inst.HandleHit(log, hit);
         }
 
-        // Last log the player hit with the axe. The sledge swing is used only on this one, so the
-        // first hit on every log is the normal axe swing. When that log splits, the pieces that
-        // appear where it was inherit the sledge swing.
-        private static TreeLog _swingLog;
-        private static Vector3 _swingLogPos;
-        private static float _swingLogGoneAt = -1f;
-        private const float SplitRadius = 12f;     // pieces spawn along the old log
-        private const float SplitWindow = 60f;     // seconds after the split
-
+        // Every axe swing aimed at a fallen log uses the sledge swing.
         public static bool CanUseSledgeSwing(Player player)
         {
-            TreeLog aimed = LogUnderCrosshair(player);
-            if (aimed == null) return false;
-            if (_swingLog != null) return aimed == _swingLog;
-
-            // The log we were chopping is gone: was it split, and is this one of its pieces?
-            if ((object)_swingLog != null && _swingLogGoneAt < 0f) _swingLogGoneAt = Time.time;
-            if (_swingLogGoneAt < 0f || Time.time - _swingLogGoneAt > SplitWindow) return false;
-            if (Vector3.Distance(aimed.transform.position, _swingLogPos) > SplitRadius) return false;
-            _swingLog = aimed;
-            _swingLogPos = aimed.transform.position;
-            _swingLogGoneAt = -1f;
-            if (Plugin.DebugLog.Value) Plugin.Log.LogInfo("Tora do tronco partido herdou a martelada: " + aimed.name);
-            return true;
+            return LogUnderCrosshair(player) != null;
         }
 
         /// The fallen log under the crosshair. Uses the game's hover object first, then a ray
-        /// from the camera in case the log has no hover text.
+        /// from the camera. The ray goes through grass, bushes and the like, and a slightly wider
+        /// cast catches aims that just miss the edge of the log.
         private static TreeLog LogUnderCrosshair(Player player)
         {
             GameObject hover = player.GetHoverObject();
@@ -127,13 +105,26 @@ namespace TreeWeakSpots
             }
             Camera cam = Camera.main;
             if (cam == null) return null;
-            float reach = Vector3.Distance(cam.transform.position, player.GetEyePoint()) + 4f;
-            RaycastHit[] hits = Physics.RaycastAll(cam.transform.position, cam.transform.forward, reach, ~0, QueryTriggerInteraction.Ignore);
+            Vector3 origin = cam.transform.position, dir = cam.transform.forward;
+            float reach = Vector3.Distance(origin, player.GetEyePoint()) + 4f;
+            TreeLog found = FirstLog(player, Physics.RaycastAll(origin, dir, reach, ~0, QueryTriggerInteraction.Ignore));
+            if (found == null)
+                found = FirstLog(player, Physics.SphereCastAll(origin, 0.35f, dir, reach, ~0, QueryTriggerInteraction.Ignore));
+            return found;
+        }
+
+        private static TreeLog FirstLog(Player player, RaycastHit[] hits)
+        {
             System.Array.Sort(hits, (h1, h2) => h1.distance.CompareTo(h2.distance));
             for (int i = 0; i < hits.Length; i++)
             {
-                if (hits[i].collider.transform.IsChildOf(player.transform)) continue;
-                return hits[i].collider.GetComponentInParent<TreeLog>();
+                Collider c = hits[i].collider;
+                if (c == null || c.transform.IsChildOf(player.transform)) continue;
+                TreeLog l = c.GetComponentInParent<TreeLog>();
+                if (l != null) return l;
+                // Stop at the ground or a big solid object: a log behind it doesn't count.
+                if (c.GetComponentInParent<Heightmap>() != null) return null;
+                if (c.GetComponentInParent<WearNTear>() != null || c.GetComponentInParent<MineRock5>() != null) return null;
             }
             return null;
         }
@@ -197,8 +188,8 @@ namespace TreeWeakSpots
             }
 
             if (Plugin.DebugLog.Value)
-                Plugin.Log.LogInfo("Distância do golpe até a faixa mais próxima = " +
-                                   (best == null ? "nenhuma faixa" : bestDist.ToString("0.00") + " m"));
+                Plugin.Log.LogInfo("Distance from hit to nearest band = " +
+                                   (best == null ? "no band" : bestDist.ToString("0.00") + " m"));
 
             if (best != null && bestDist <= Plugin.HitTolerance.Value)
             {
@@ -214,7 +205,7 @@ namespace TreeWeakSpots
             float before = hit.m_damage.m_chop;
             hit.m_damage.m_chop *= Plugin.CritMultiplier.Value;
             if (Plugin.DebugLog.Value)
-                Plugin.Log.LogInfo("Crítico: dano de corte " + before.ToString("0.0") + " → " + hit.m_damage.m_chop.ToString("0.0") +
+                Plugin.Log.LogInfo("Crit: chop damage " + before.ToString("0.0") + " → " + hit.m_damage.m_chop.ToString("0.0") +
                                    " (x" + Plugin.CritMultiplier.Value.ToString("0.##") + ")");
         }
 
@@ -227,7 +218,7 @@ namespace TreeWeakSpots
             _lastHitTime = Time.time;
             _lastHitPos = hit.m_point;
             if (Plugin.DebugLog.Value)
-                Plugin.Log.LogInfo("Dano do golpe: corte " + hit.m_damage.m_chop.ToString("0.0") +
+                Plugin.Log.LogInfo("Hit damage: chop " + hit.m_damage.m_chop.ToString("0.0") +
                                    ", total " + hit.m_damage.GetTotalDamage().ToString("0.0"));
         }
 
@@ -271,8 +262,8 @@ namespace TreeWeakSpots
             float r1 = size[(axis + 1) % 3] * 0.5f, r2 = size[(axis + 2) % 3] * 0.5f;
             _radiusLocal = Mathf.Max(r1, r2);
             if (Plugin.DebugLog.Value)
-                Plugin.Log.LogInfo("Tronco " + log.name + ": comprimento " + (AxisScale() * size[axis]).ToString("0.0") +
-                                   " m, raio " + (_radiusLocal * AxisScale()).ToString("0.00") + " m, malha " + bestF.name);
+                Plugin.Log.LogInfo("Log " + log.name + ": length " + (AxisScale() * size[axis]).ToString("0.0") +
+                                   " m, radius " + (_radiusLocal * AxisScale()).ToString("0.00") + " m, mesh " + bestF.name);
             return true;
         }
 
@@ -354,10 +345,6 @@ namespace TreeWeakSpots
         {
             if ((_target == null || _meshT == null) && _rings.Count > 0) ClearRings();   // log destroyed
 
-            // Follow the swing log while it rolls, and note when it disappears (split or chopped up).
-            if (_swingLog != null) _swingLogPos = _swingLog.transform.position;
-            else if ((object)_swingLog != null && _swingLogGoneAt < 0f) _swingLogGoneAt = Time.time;
-
             Player player = Player.m_localPlayer;
             if (!Plugin.Enabled.Value || player == null || !ModActive(player))
             {
@@ -392,8 +379,8 @@ namespace TreeWeakSpots
 
         public Color CurrentColor()
         {
-            if (Plugin.SpotColor.Value == SpotColorOption.Azul) return new Color(0.35f, 0.75f, 1f);
-            if (Plugin.SpotColor.Value == SpotColorOption.Verde) return new Color(0.45f, 1f, 0.35f);
+            if (Plugin.SpotColor.Value == SpotColorOption.Blue) return new Color(0.35f, 0.75f, 1f);
+            if (Plugin.SpotColor.Value == SpotColorOption.Green) return new Color(0.45f, 1f, 0.35f);
             return new Color(1f, 0.78f, 0.25f);
         }
 
@@ -498,14 +485,14 @@ namespace TreeWeakSpots
         {
             float vol = Plugin.SoundVolume.Value;
             CritSoundOption mode = Plugin.CritSound.Value;
-            if (vol <= 0f || mode == CritSoundOption.Nenhum) return;
+            if (vol <= 0f || mode == CritSoundOption.None) return;
             FindGameCritSound();
 
             List<AudioClip> pool = null;
-            if (mode == CritSoundOption.Automatico)
+            if (mode == CritSoundOption.Auto)
                 pool = _fileClips.Count > 0 ? _fileClips : (_gameClips.Count > 0 ? _gameClips : null);
-            else if (mode == CritSoundOption.Arquivo) pool = _fileClips.Count > 0 ? _fileClips : null;
-            else if (mode == CritSoundOption.Jogo) pool = _gameClips.Count > 0 ? _gameClips : null;
+            else if (mode == CritSoundOption.File) pool = _fileClips.Count > 0 ? _fileClips : null;
+            else if (mode == CritSoundOption.Game) pool = _gameClips.Count > 0 ? _gameClips : null;
 
             AudioClip clip = pool != null ? pool[Random.Range(0, pool.Count)] : _critClip;
             AudioSource src = GetPlayerAudio();

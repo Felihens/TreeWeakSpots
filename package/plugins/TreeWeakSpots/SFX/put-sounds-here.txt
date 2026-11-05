@@ -1,0 +1,2 @@
+Put .wav or .ogg files here to use as the crit sound. One is picked at random on each crit
+(CritSound = Auto or File). Without files, the game's "hit a staggered enemy" sound is used.
